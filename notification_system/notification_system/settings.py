@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 from pathlib import Path
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -138,5 +140,5 @@ EMAIL_HOST = 'smtp.sendgrid.net'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'apikey'  # this is exactly the value 'apikey'
-EMAIL_HOST_PASSWORD = ''  # replace 'YOUR_SENDGRID_API_KEY' with your actual SendGrid API key
-DEFAULT_FROM_EMAIL = 'raymond@raymondjones.dev'  # Replace with your sender email
+EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')  # replace 'YOUR_SENDGRID_API_KEY' with your actual SendGrid API key
+DEFAULT_FROM_EMAIL = 'ray@raymondjones.dev'  # Replace with your sender email

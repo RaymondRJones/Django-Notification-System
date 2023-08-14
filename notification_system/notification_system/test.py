@@ -15,7 +15,6 @@ message = Mail(
     subject='Sending with Twilio SendGrid is Fun',
     html_content='<strong>and easy to do anywhere, even with Python</strong>')
 try:
-    print(os.environ.get('SENDGRID_API_KEY'))
     sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
     response = sg.send(message)
     print(response.status_code)

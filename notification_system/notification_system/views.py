@@ -10,7 +10,9 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 from .models import User, Message
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 @csrf_exempt  # Note: This disables CSRF protection for the view. In production, a more secure method should be used.
 def send_notification(request):
     if request.method == 'POST':
@@ -30,16 +32,14 @@ def send_notification(request):
 
             if not message:
                 return JsonResponse({'status': 'error', 'message': 'Message not found'})
-
-            # Send Email using Gmail
-            send_mail(
-                'Notification',              # subject
-                message.content,             # message
-                'your_email@gmail.com',      # from email
-                [user.email],                # recipient list
-                fail_silently=False,
-            )
-
+            message = Mail(
+                from_email='ray@raymondjones.dev',
+                to_emails='rayjones2170@gmail.com',
+                subject='Part 2 - Sending with Twilio SendGrid is Fun',
+                html_content='<strong>and easy to do anywhere, even with Python</strong>')
+            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+            response = sg.send(message, fail_silently=False)
+            print("Response", response)
             message.is_sent = True
             message.save()
 
