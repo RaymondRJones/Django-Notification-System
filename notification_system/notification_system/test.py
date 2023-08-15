@@ -28,11 +28,7 @@ data = {
     "template_id": "d-c2c2a6c8a5d2425da166762fbe979d5e"
 
 }
-message = Mail(
-    from_email='ray@raymondjones.dev',
-    to_emails='rayjones2170@gmail.com',
-    subject='Sending with Twilio SendGrid is Fun',
-    html_content='<strong>and easy to do anywhere, even with Python</strong>')
+
 try:
     sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
     response = sg.send(data)

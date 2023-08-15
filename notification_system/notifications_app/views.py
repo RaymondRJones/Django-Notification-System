@@ -4,8 +4,8 @@ from django.core.mail import send_mail
 from .models import User, Message
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-
-
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
@@ -59,8 +59,6 @@ def send_notification_to_one_user(request):
                 to_emails=user.email,
                 subject='Part 3 - Sending with Twilio SendGrid is Fun',
                 html_content=email_content)
-            # print(os.environ.get('SENDGRID_API_KEY'))
-
 
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
 
@@ -82,6 +80,7 @@ def send_notification_to_one_user(request):
 
 @csrf_exempt
 def create_new_user(request):
+    # Check if user already exists to prevent error
     if request.method == 'POST':
         # Extract data from POST request
         name = request.POST.get('name')
@@ -94,6 +93,7 @@ def create_new_user(request):
 
         # Create the new user
         try:
+            print("Creating user")
             while True:  # Normally really bad code but it's okay for 100 users, like a .01% collision chance
                 referral_code = generate_referral_code()
                 if not User.objects.filter(referral_code=referral_code).exists():
@@ -105,4 +105,21 @@ def create_new_user(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
 
+    return JsonResponse({'status': 'error', 'message': 'Only POST method is allowed.'})
+
+def add_loyalty_points(request):
+    if request.method == 'POST':
+        try:
+            if request.method == 'POST':
+                user_email= request.POST.get('email')
+                user = User.objects.get(email=user_email)
+                # In the future we probably want to use a mapping instead of a flat visit
+                # For example 5 points * product_to_points[product_they_bought]
+                user.loyalty_points += 5 
+                user.save()
+            return JsonResponse({'status': 'success', 'message': 'Loyalty points increased successfully.'})
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': 'Only POST method is allowed.'})
