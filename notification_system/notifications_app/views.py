@@ -11,10 +11,17 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
 from .models import User, Message
 import os
+from sendgrid.helpers.mail import Mail, From, To, Subject, PlainTextContent, HtmlContent, TemplateId
 from dotenv import load_dotenv
+
 load_dotenv()
+
+def load_email_template(template_name):
+    with open(template_name, 'r') as file:
+        return file.read()
+
 @csrf_exempt  # Note: This disables CSRF protection for the view. In production, a more secure method should be used.
-def send_notification(request):
+def send_notification_to_one_user(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         username = request.POST.get('name')
@@ -28,20 +35,35 @@ def send_notification(request):
             else:
                 return JsonResponse({'status': 'error', 'message': 'Please provide a user_id or username'})
             print("Gets the name")
+
             message = Message.objects.filter(type=message_type).first()
             if not message:
                 return JsonResponse({'status': 'error', 'message': 'Message not found'})
+            
             print("Gets the message")
+
+
             msg = "<strong> " + message.content + "</strong>"
+            template_path = '/Users/raymondjones/Documents/GitHub/Django-Notification-System/notification_system/notifications_app/email_template_1.html'
+
+            email_content = load_email_template(template_path)
+
             message_to_send = Mail(
                 from_email='ray@raymondjones.dev',
                 to_emails=user.email,
-                subject='Part 2 - Sending with Twilio SendGrid is Fun',
-                html_content=msg)
-            print(os.environ.get('SENDGRID_API_KEY'))
+                subject='Part 3 - Sending with Twilio SendGrid is Fun',
+                html_content=email_content)
+            # print(os.environ.get('SENDGRID_API_KEY'))
+
+
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+
+            # Here
             response = sg.send(message_to_send)
             print("Response", response)
+            print(response.status_code)
+            print(response.body)
+            print(response.headers)
             message.is_sent = True
             message.save()
 
@@ -51,45 +73,6 @@ def send_notification(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Only POST method is allowed'})
-
-def send_notification_now(request):
-    if request.method == 'POST':
-        user_id = request.POST.get('user_id')
-        username = request.POST.get('name')
-        message_type = request.POST.get('type')
-
-        try:
-            if user_id:
-                user = User.objects.get(pk=user_id)
-            elif username:
-                user = User.objects.get(name=username)
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Please provide a user_id or username'})
-            print("Gets the name")
-            message = Message.objects.filter(type=message_type).first()
-            if not message:
-                return JsonResponse({'status': 'error', 'message': 'Message not found'})
-            print("Gets the message")
-            msg = "<strong> " + message.content + "</strong>"
-            message_to_send = Mail(
-                from_email='ray@raymondjones.dev',
-                to_emails=user.email,
-                subject='Part 2 - Sending with Twilio SendGrid is Fun',
-                html_content=msg)
-            print(os.environ.get('SENDGRID_API_KEY'))
-            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-            response = sg.send(message_to_send)
-            print("Response", response)
-            message.is_sent = True
-            message.save()
-
-            return JsonResponse({'status': 'success', 'message': 'Notification sent'})
-
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
-
-    return JsonResponse({'status': 'error', 'message': 'Only POST method is allowed'})
-
 
 
 
