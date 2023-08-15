@@ -6,6 +6,7 @@ class User(models.Model):
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
     email = models.EmailField(unique=True)
+    referral_code = models.CharField(max_length=5, unique=True, blank=True, null=True)
     group = models.CharField(max_length=50)  # Assuming group as a char field, could be a ForeignKey if it's another model.
     def __str__(self):
         return self.name
